@@ -1,0 +1,45 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+    networks:
+      - internal_network
+  app:
+    build: 
+      context: ./
+      dockerfile: Dockerfile
+    depends_on:
+      - api
+    ports:
+      - 80:80
+    networks:
+      - internal_network
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - internal_network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 10s
+      #timeout: 30s
+      retries: 5
+      #start_period: 30s
+volumes:
+  pgdata:
+networks:
+  internal_network:
+    driver: bridge

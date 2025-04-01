@@ -1,0 +1,67 @@
+# @name login
+POST http://localhost:5153/auth/login HTTP/1.1
+content-type: application/json
+
+{
+    "email": "andres@gmail.com",
+    "password": "Andres.123"
+}
+###login admin
+# @name admin
+POST http://localhost:5153/auth/login HTTP/1.1
+content-type: application/json
+
+{
+    "email": "admin@gmail.com",
+    "password": "Admin.123"
+}
+
+###
+@authToken = {{ login.response.body.token }}
+@adminAuthToken = {{ admin.response.body.token }}
+
+###
+GET http://localhost:5153 HTTP/1.1
+content-type: application/json
+{
+    "token":  "123"
+}
+
+### test for / for users
+GET http://localhost:5153/protected HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{authToken}}
+
+### Create users with no passwords, only admins
+POST http://localhost:5153/user/create HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{adminAuthToken}}
+
+{
+    "email": "admin@gmail.com",
+    "role": "Admin"
+}
+
+### get users by id
+# 012b0d97-2c48-4740-96e7-4b4aca85851d
+GET http://localhost:5153/user/012b0d97-2c48-4740-96e7-4b4aca85851d HTTP/1.1
+content-type: application/json
+
+### Add password for admins when user has null password
+PUT http://localhost:5153/user/012b0d97-2c48-4740-96e7-4b4aca85851d/add_password HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{adminAuthToken}}
+
+{
+    "newPassword": "Admin.123"
+}
+
+### Delete user
+DELETE http://localhost:5153/user/8cd2dad1-5be3-4ceb-8108-6f99caae436b HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{adminAuthToken}}
+
+### get users
+GET http://localhost:5153/user HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{adminAuthToken}}
